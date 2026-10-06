@@ -1,0 +1,193 @@
+﻿<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="QrMaster.MainWindow"
+        Title="QR Master" Icon="/Assets/app.ico"
+        Width="1000" Height="700" MinWidth="780" MinHeight="580"
+        WindowStartupLocation="CenterScreen"
+        TransparencyLevelHint="Mica, AcrylicBlur, None"
+        Background="Transparent"
+        ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaChromeHints="PreferSystemChrome"
+        ExtendClientAreaTitleBarHeightHint="40">
+
+  <Grid RowDefinitions="40,Auto,*,Auto">
+
+    <!-- Title bar -->
+    <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto" Background="Transparent">
+      <Image Grid.Column="0" Source="/Assets/app.ico" Width="16" Height="16" Margin="14,0,8,0" VerticalAlignment="Center" />
+      <TextBlock Grid.Column="1" Text="QR Master" VerticalAlignment="Center" FontSize="12" IsHitTestVisible="False" />
+      <Button x:Name="SettingsButton" Grid.Column="2" Classes="subtle" Margin="0,4,150,4" Padding="10,0"
+              Background="Transparent" BorderThickness="0" VerticalAlignment="Stretch"
+              ToolTip.Tip="{DynamicResource S.Settings}">
+        <StackPanel Orientation="Horizontal" Spacing="8">
+          <TextBlock Text="&#x2699;" FontSize="14" VerticalAlignment="Center" />
+          <TextBlock Text="{DynamicResource S.Settings}" FontSize="12" VerticalAlignment="Center" />
+        </StackPanel>
+        <Button.Flyout>
+          <Flyout Placement="BottomEdgeAlignedRight">
+            <StackPanel Width="320" Spacing="14">
+              <TextBlock Classes="subtle" Text="{DynamicResource S.Settings}" FontSize="18" FontWeight="SemiBold" />
+
+              <StackPanel Spacing="4">
+                <TextBlock Text="{DynamicResource S.Theme}" />
+                <ComboBox x:Name="ThemeBox" HorizontalAlignment="Stretch">
+                  <ComboBoxItem Content="{DynamicResource S.ThemeSystem}" />
+                  <ComboBoxItem Content="{DynamicResource S.ThemeLight}" />
+                  <ComboBoxItem Content="{DynamicResource S.ThemeDark}" />
+                </ComboBox>
+              </StackPanel>
+
+              <StackPanel Spacing="4">
+                <TextBlock Text="{DynamicResource S.Language}" />
+                <ComboBox x:Name="LanguageBox" HorizontalAlignment="Stretch">
+                  <ComboBoxItem Content="English" />
+                  <ComboBoxItem Content="Türkçe" />
+                </ComboBox>
+              </StackPanel>
+
+              <Separator />
+              <TextBlock Classes="subtitle" Text="{DynamicResource S.Updates}" />
+
+              <StackPanel Spacing="4">
+                <TextBlock Text="{DynamicResource S.UpdateChannel}" />
+                <ComboBox x:Name="ChannelBox" HorizontalAlignment="Stretch">
+                  <ComboBoxItem Content="{DynamicResource S.ChannelProd}" />
+                  <ComboBoxItem Content="{DynamicResource S.ChannelTest}" />
+                  <ComboBoxItem Content="{DynamicResource S.ChannelDev}" />
+                </ComboBox>
+              </StackPanel>
+
+              <ToggleSwitch x:Name="AutoCheckSwitch" OnContent="{DynamicResource S.AutoCheck}" OffContent="{DynamicResource S.AutoCheck}" />
+              <Button x:Name="CheckNowButton" Content="{DynamicResource S.CheckNow}" HorizontalAlignment="Stretch" />
+              <TextBlock x:Name="VersionText" Classes="caption" />
+            </StackPanel>
+          </Flyout>
+        </Button.Flyout>
+      </Button>
+    </Grid>
+
+    <!-- Update banner -->
+    <Border x:Name="UpdateBar" Grid.Row="1" IsVisible="False" Margin="20,0,20,8" Classes="card" Padding="12,8">
+      <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
+        <TextBlock x:Name="UpdateText" VerticalAlignment="Center" TextWrapping="Wrap" />
+        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8">
+          <Button x:Name="InstallButton" Classes="accent" Content="{DynamicResource S.InstallUpdate}" />
+          <Button x:Name="ReleaseButton" Content="{DynamicResource S.ViewRelease}" />
+          <Button x:Name="DismissButton" Content="{DynamicResource S.Later}" />
+        </StackPanel>
+        <ProgressBar x:Name="UpdateProgress" Grid.Row="1" Grid.ColumnSpan="2" Margin="0,8,0,0" Maximum="100" IsVisible="False" />
+      </Grid>
+    </Border>
+
+    <!-- Content -->
+    <TabControl x:Name="Tabs" Grid.Row="2" Margin="12,0,12,0" Padding="0,8,0,0">
+
+      <TabItem Header="{DynamicResource S.Generate}" FontSize="14">
+        <Grid ColumnDefinitions="*,16,340" Margin="8,4,8,0">
+          <ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto">
+            <StackPanel Spacing="14" Margin="0,0,8,0">
+              <StackPanel Spacing="6">
+                <TextBlock Classes="subtitle" Text="{DynamicResource S.Content}" />
+                <TextBox x:Name="InputBox" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="150" MaxHeight="260"
+                         Watermark="{DynamicResource S.ContentHint}" />
+              </StackPanel>
+
+              <Border Classes="card">
+                <StackPanel Spacing="14">
+                  <TextBlock Classes="subtitle" Text="{DynamicResource S.Appearance}" />
+
+                  <Grid ColumnDefinitions="140,*">
+                    <TextBlock Text="{DynamicResource S.ErrorCorrection}" VerticalAlignment="Center" />
+                    <ComboBox x:Name="EcBox" Grid.Column="1" HorizontalAlignment="Stretch">
+                      <ComboBoxItem Content="{DynamicResource S.EcL}" />
+                      <ComboBoxItem Content="{DynamicResource S.EcM}" />
+                      <ComboBoxItem Content="{DynamicResource S.EcQ}" />
+                      <ComboBoxItem Content="{DynamicResource S.EcH}" />
+                    </ComboBox>
+                  </Grid>
+
+                  <Grid ColumnDefinitions="140,*,70">
+                    <TextBlock Text="{DynamicResource S.Size}" VerticalAlignment="Center" />
+                    <Slider x:Name="SizeSlider" Grid.Column="1" Minimum="128" Maximum="2048" Value="512" SmallChange="32" LargeChange="128" TickFrequency="32" IsSnapToTickEnabled="True" />
+                    <TextBlock x:Name="SizeText" Grid.Column="2" HorizontalAlignment="Right" VerticalAlignment="Center" Classes="caption" />
+                  </Grid>
+
+                  <Grid ColumnDefinitions="140,*,70">
+                    <TextBlock Text="{DynamicResource S.Margin}" VerticalAlignment="Center" />
+                    <Slider x:Name="MarginSlider" Grid.Column="1" Minimum="0" Maximum="10" Value="4" TickFrequency="1" IsSnapToTickEnabled="True" />
+                    <TextBlock x:Name="MarginText" Grid.Column="2" HorizontalAlignment="Right" VerticalAlignment="Center" Classes="caption" />
+                  </Grid>
+
+                  <Grid ColumnDefinitions="140,*">
+                    <TextBlock Text="{DynamicResource S.Foreground}" VerticalAlignment="Center" />
+                    <ColorPicker x:Name="FgPicker" Grid.Column="1" Color="#FF000000" HorizontalAlignment="Left" IsAlphaEnabled="False" />
+                  </Grid>
+
+                  <Grid ColumnDefinitions="140,*">
+                    <TextBlock Text="{DynamicResource S.Background}" VerticalAlignment="Center" />
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="16">
+                      <ColorPicker x:Name="BgPicker" Color="#FFFFFFFF" IsAlphaEnabled="False" />
+                      <CheckBox x:Name="TransparentCheck" Content="{DynamicResource S.TransparentBg}" />
+                    </StackPanel>
+                  </Grid>
+                </StackPanel>
+              </Border>
+            </StackPanel>
+          </ScrollViewer>
+
+          <StackPanel Grid.Column="2" Spacing="12">
+            <Border Classes="card" Padding="12">
+              <Grid Height="300">
+                <Border x:Name="CheckerBg" CornerRadius="4" ClipToBounds="True" />
+                <Image x:Name="PreviewImage" Stretch="Uniform" RenderOptions.BitmapInterpolationMode="None"
+                       AutomationProperties.Name="{DynamicResource S.PreviewAlt}" />
+                <TextBlock x:Name="EmptyText" Text="{DynamicResource S.EmptyPreview}" Classes="caption"
+                           HorizontalAlignment="Center" VerticalAlignment="Center" TextWrapping="Wrap" TextAlignment="Center" />
+              </Grid>
+            </Border>
+            <TextBlock x:Name="InfoText" Classes="caption" HorizontalAlignment="Center" />
+            <Grid ColumnDefinitions="*,8,*">
+              <Button x:Name="CopyImageButton" Classes="accent" Content="{DynamicResource S.CopyImage}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" />
+              <Button x:Name="SaveButton" Grid.Column="2" Content="{DynamicResource S.SaveAs}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" />
+            </Grid>
+            <Button x:Name="CopyTextButton" Content="{DynamicResource S.CopyText}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" />
+          </StackPanel>
+        </Grid>
+      </TabItem>
+
+      <TabItem Header="{DynamicResource S.Read}" FontSize="14">
+        <Grid ColumnDefinitions="*,16,*" Margin="8,4,8,0">
+          <StackPanel Grid.Column="0" Spacing="12">
+            <Border x:Name="DropZone" Classes="card" Height="330" BorderThickness="1.5">
+              <Grid>
+                <Image x:Name="ReadImage" Stretch="Uniform" />
+                <TextBlock x:Name="DropHintText" Text="{DynamicResource S.DropHint}" Classes="caption"
+                           HorizontalAlignment="Center" VerticalAlignment="Center" TextWrapping="Wrap" TextAlignment="Center" MaxWidth="260" />
+              </Grid>
+            </Border>
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <Button x:Name="OpenButton" Classes="accent" Content="{DynamicResource S.OpenImage}" />
+              <Button x:Name="PasteButton" Content="{DynamicResource S.Paste}" />
+            </StackPanel>
+          </StackPanel>
+
+          <StackPanel Grid.Column="2" Spacing="12">
+            <TextBlock Classes="subtitle" Text="{DynamicResource S.Result}" />
+            <TextBox x:Name="ResultBox" IsReadOnly="True" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="200" MaxHeight="330" />
+            <TextBlock x:Name="ResultInfo" Classes="caption" />
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <Button x:Name="CopyResultButton" Classes="accent" Content="{DynamicResource S.CopyResult}" IsEnabled="False" />
+              <Button x:Name="OpenLinkButton" Content="{DynamicResource S.OpenLink}" IsVisible="False" />
+            </StackPanel>
+          </StackPanel>
+        </Grid>
+      </TabItem>
+    </TabControl>
+
+    <!-- Status bar -->
+    <Border Grid.Row="3" Padding="20,6" Background="Transparent">
+      <TextBlock x:Name="StatusText" Classes="caption" TextTrimming="CharacterEllipsis" />
+    </Border>
+  </Grid>
+</Window>
+

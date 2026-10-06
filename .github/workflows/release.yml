@@ -1,0 +1,96 @@
+﻿name: Release
+
+# Tag formats (the tag decides the update channel):
+#   v1.2.3          -> prod  (stable GitHub release)
+#   v1.2.3-test.N   -> test  (pre-release)
+#   v1.2.3-dev.N    -> dev   (pre-release)
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.v.outputs.version }}
+      numeric: ${{ steps.v.outputs.numeric }}
+      prerelease: ${{ steps.v.outputs.prerelease }}
+    steps:
+      - id: v
+        run: |
+          tag="${GITHUB_REF_NAME}"
+          if ! [[ "$tag" =~ ^v([0-9]+)\.([0-9]+)\.([0-9]+)(-(dev|test)\.[0-9]+)?$ ]]; then
+            echo "Tag '$tag' must look like v1.2.3, v1.2.3-test.1 or v1.2.3-dev.1"; exit 1
+          fi
+          echo "version=${tag#v}" >> "$GITHUB_OUTPUT"
+          echo "numeric=${BASH_REMATCH[1]}.${BASH_REMATCH[2]}.${BASH_REMATCH[3]}.0" >> "$GITHUB_OUTPUT"
+          if [[ "$tag" == *-* ]]; then echo "prerelease=true" >> "$GITHUB_OUTPUT"; else echo "prerelease=false" >> "$GITHUB_OUTPUT"; fi
+
+  build:
+    needs: validate
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        arch: [x64, arm64]
+    env:
+      VERSION: ${{ needs.validate.outputs.version }}
+      NUMERIC: ${{ needs.validate.outputs.numeric }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Test
+        if: matrix.arch == 'x64'
+        run: dotnet test QrMaster.sln -c Release
+
+      - name: Publish
+        run: >
+          dotnet publish src/QrMaster -c Release -r win-${{ matrix.arch }}
+          -p:PublishTrimmed=true -p:Version=${{ env.VERSION }}
+          -p:GitHubRepository=${{ github.repository }}
+          -o artifacts/publish/win-${{ matrix.arch }}
+
+      - name: Install Inno Setup
+        run: choco install innosetup -y --no-progress
+
+      - name: Build installer
+        run: >
+          & "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          /DAppVersion=${{ env.VERSION }} /DNumericVersion=${{ env.NUMERIC }}
+          /DArch=${{ matrix.arch }} /DSourceDir=..\artifacts\publish\win-${{ matrix.arch }}
+          installer\QrMaster.iss
+
+      - name: Portable zip + checksums
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force artifacts/release | Out-Null
+          Compress-Archive -Path "artifacts/publish/win-${{ matrix.arch }}/*" -DestinationPath "artifacts/release/QrMaster-${{ env.VERSION }}-win-${{ matrix.arch }}-portable.zip"
+          Copy-Item "artifacts/installer/QrMaster-Setup-${{ env.VERSION }}-win-${{ matrix.arch }}.exe" artifacts/release/
+          Get-ChildItem artifacts/release -File | ForEach-Object {
+            $h = (Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLower()
+            "$h  $($_.Name)" | Set-Content -NoNewline "$($_.FullName).sha256"
+          }
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-${{ matrix.arch }}
+          path: artifacts/release/*
+
+  publish:
+    needs: [validate, build]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
+          prerelease: ${{ needs.validate.outputs.prerelease == 'true' }}
+          generate_release_notes: true

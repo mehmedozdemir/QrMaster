@@ -1,0 +1,18 @@
+﻿name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+
+jobs:
+  build-test:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - run: dotnet test QrMaster.sln -c Release
+      - name: Verify trimmed publish
+        run: dotnet publish src/QrMaster -c Release -r win-x64 -p:PublishTrimmed=true -o artifacts/publish/win-x64
